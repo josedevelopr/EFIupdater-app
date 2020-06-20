@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipException;
 
 import javax.swing.JOptionPane;
 
@@ -26,6 +27,10 @@ import com.eficost.updaterapp.entities.FtpUpdater;
 import com.eficost.updaterapp.entities.IniFile;
 import com.eficost.updaterapp.helper.EFIcostHelper;
 import com.eficost.updaterapp.view.frmUpdaterEFIcost;
+
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.progress.ProgressMonitor;
 
 public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 
@@ -308,7 +313,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 									break;
 									
 							}
-							if(type == "Desa" || type == "Sist") {
+							if(type.equals("Desa") || type.equals("Sist")) {
 								ftp.changeWorkingDirectory("/");
 								ftp.changeWorkingDirectory(iniFilePath);
 								FTPFile[] iniFileList = ftp.listFiles();
@@ -391,23 +396,23 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 					outFiletoDownload = new FileOutputStream(currentFilePathtoDownload+"/"+fileToDownload.getName());
 					
 					if(ftp.retrieveFile(fileToDownload.getName(), outFiletoDownload)) {
+						// To  debug
+						System.out.print("\n");
+						System.out.print(time+"\n");
+						System.out.print("Descargando en :"+currentFilePathtoDownload+" \n");					
+						System.out.print(fileToDownload.getName()+"\n");
+						System.out.print(downloadPercent+"% \n");					
+						System.out.print("\n");
+						System.out.print("============================\n");
+						
+						// To  debug
 						countDownloadedFiles++;
 						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Se descargó el archivo con éxito."+"\n");
 					}else {
 						countErrFiles++;
 						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Problemas al descargar el archivo."+"\n");							
 											
-					}
-					// To  debug
-					System.out.print("\n");
-					System.out.print(time+"\n");
-					System.out.print("Descargando en :"+currentFilePathtoDownload+" \n");					
-					System.out.print(fileToDownload.getName()+"\n");
-					System.out.print(downloadPercent+"% \n");					
-					System.out.print("\n");
-					System.out.print("============================\n");
-					
-					// To  debug
+					}					
 					
 					countFiles++;
 					downloadPercent = 100 * (countFiles + 1) / total;
@@ -416,7 +421,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 					ftp.logout();
 					ftp.disconnect();	 
 				}
-				
+				Date finishDownloadDate = Calendar.getInstance().getTime();
+			    strDate = dateFormat.format(finishDownloadDate); 
 				myWriter.write("\n");
 				myWriter.write("Total de archivos para descargar	: "+countFiles+"\n");
 				myWriter.write("Total de archivos actualizados		: "+countDownloadedFiles+"\n");
@@ -425,9 +431,76 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				myWriter.write("Fin del proceso: "+strDate+"\n");
 				
 				// DOWNLOAD FILES <<<<<<<<<<<<<<<<<<======================================================
+				
+				// EXTRACT COMPRESSED FILES ======================================================>>>>>>>>>>>>>>>>>>>>>>
+				Date zipExtractDate = Calendar.getInstance().getTime();
+			    strDate = dateFormat.format(zipExtractDate); 
+				
 				myWriter.write("\n");
 			    myWriter.write("ACCIÓN: Descomprimir archivos\n");
-				
+			    myWriter.write("\n");
+			    myWriter.write("Inicio del proceso: " + strDate+"\n");				    
+			    myWriter.write("\n");
+			     
+			    // The app zip file
+			    int countDescompressFiles = 0;
+			    int countErrorDescompressFiles = 0;
+			    String zipPath = downFilesPath+"/"+objApp.getExeFieldNameApp()+".zip";
+			    File file = new File(zipPath);			    
+			    List<FileHeader> fileHeaderList = new ArrayList<FileHeader>();
+			    if(file.exists() && !file.isDirectory()) 
+			    {	
+			    	try
+			    	{	
+			    		ZipFile zipFile = new ZipFile(zipPath);
+				    	//zipFile.setRunInThread(true);
+				    	//ProgressMonitor progressMonitor = zipFile.getProgressMonitor();				    	
+			    		fileHeaderList = zipFile.getFileHeaders();
+			    		int totalExtract = fileHeaderList.size();//files.length;
+						int downloadPercentExtract = 0;
+			    		for(FileHeader fileHeader : fileHeaderList) 
+			    		{
+			    			if(fileHeader.getFileName().endsWith(".pbd") || fileHeader.getFileName().equals(objApp.getExeAppName())) 
+			    			{
+			    				updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());			    			
+				    			zipFile.extractFile(fileHeader, downFilesPath+"/");
+				    			myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+
+				    			countDescompressFiles++;
+				    			downloadPercentExtract = 100 * (countDescompressFiles +1) / totalExtract;
+								updaterView.pbDescargaArchivo.setValue(downloadPercentExtract);
+			    			}
+			    			/*
+			    			if(progressMonitor.getResult() == ProgressMonitor.Result.ERROR) {
+			    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Errores al descomprimir el archivo.."+"\n");
+			    				countErrorDescompressFiles++;
+			    				if(progressMonitor.getException() != null) {
+									progressMonitor.getException().printStackTrace();									
+								}else {									
+									System.out.print("There was an error without any exception");									
+								}
+							}*/
+			    		}
+			    	}
+			    	catch(Exception e)
+			    	{
+			    		e.printStackTrace();
+			    	}
+			    }
+			    else {
+			    	// SHOW MESSAGE "FILE ZIP DOESN'T EXIST"
+			    }
+			    
+			    Date finishExtractDate = Calendar.getInstance().getTime();
+			    strDate = dateFormat.format(finishExtractDate); 
+				myWriter.write("\n");
+				myWriter.write("Total de archivos para descomprimir	      : "+fileHeaderList.size()+"\n");
+				myWriter.write("Total de archivos descomprimidos		  : "+countErrorDescompressFiles+"\n");
+				myWriter.write("Total de archivos descomprimidos con error: "+countErrorDescompressFiles+"\n");
+				myWriter.write("\n");
+				myWriter.write("Fin del proceso: "+strDate+"\n");
+			    
+				// EXTRACT COMPRESSED FILES <<<<<<<<<<<<<<<<<<======================================================
 				
 				myWriter.close();
 				outFiletoDownload.close();					
@@ -569,6 +642,71 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				myWriter.write("\n");
 				myWriter.write("Fin del proceso: "+strDate+"\n");
 				
+				
+				myWriter.write("\n");
+			    myWriter.write("ACCIÓN: Descomprimir archivos\n");
+			    myWriter.write("\n");
+			    myWriter.write("Inicio del proceso: " + strDate+"\n");				    
+			    myWriter.write("\n");
+			     
+			    // The app zip file
+			    int countDescompressFiles = 0;
+			    int countErrorDescompressFiles = 0;
+			    String zipPath = downFilesPath+"/"+objApp.getExeFieldNameApp()+".zip";
+			    File file = new File(zipPath);			    
+			    List<FileHeader> fileHeaderList = new ArrayList<FileHeader>();
+			    if(file.exists() && !file.isDirectory()) 
+			    {	
+			    	try
+			    	{
+			    		
+						int downloadPercentExtract = 0;
+						
+			    		ZipFile zipFile = new ZipFile(zipPath);
+				    	//zipFile.setRunInThread(true);
+				    	//ProgressMonitor progressMonitor = zipFile.getProgressMonitor();				    	
+			    		fileHeaderList = zipFile.getFileHeaders();
+			    		int totalExtract = fileHeaderList.size();//files.length;
+			    		for(FileHeader fileHeader : fileHeaderList) 
+			    		{
+			    			updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());	
+			    			
+		    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+		    				zipFile.extractFile(fileHeader, downFilesPath+"/");
+		    				countDescompressFiles++;
+			    			/*
+			    			if(progressMonitor.getResult() == ProgressMonitor.Result.ERROR) {
+			    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Errores al descomprimir el archivo.."+"\n");
+			    				countErrorDescompressFiles++;
+			    				if(progressMonitor.getException() != null) {
+									progressMonitor.getException().printStackTrace();									
+								}else {									
+									System.out.print("There was an error without any exception");									
+								}
+							}			  */  			
+			    			downloadPercentExtract = 100 * (countDescompressFiles + 1) / totalExtract;
+							updaterView.pbDescargaArchivo.setValue(downloadPercentExtract);
+			    		}
+			    	}
+			    	catch(Exception e)
+			    	{
+			    		e.printStackTrace();
+			    	}
+			    }
+			    else {
+			    	// SHOW MESSAGE "FILE ZIP DOESN'T EXIST"
+			    }
+			    
+			    Date finishExtractDate = Calendar.getInstance().getTime();
+			    strDate = dateFormat.format(finishExtractDate); 
+				myWriter.write("\n");
+				myWriter.write("Total de archivos para descomprimir	      : "+fileHeaderList.size()+"\n");
+				myWriter.write("Total de archivos descomprimidos		  : "+countErrorDescompressFiles+"\n");
+				myWriter.write("Total de archivos descomprimidos con error: "+countErrorDescompressFiles+"\n");
+				myWriter.write("\n");
+				myWriter.write("Fin del proceso: "+strDate+"\n");
+				
+				
 				myWriter.close();
 				outFiletoDownload.close();					
 			}
@@ -585,6 +723,9 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 
 	@Override
 	public boolean copyFileVersion(FtpUpdater updater, Application objApp, IniFile objIni) {
+		
+		updaterView.lblTitulo.setText("EFIcost | Estamos culminando la actualización.");
+		
 		String originPath 	  = "";
 		String toDownloadPath = "";
 		FTPClient ftp = new FTPClient();
@@ -604,11 +745,14 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			
 			OutputStream out = null;
 			for(FTPFile file : files) {
-				System.out.print(file.getName()+"\n");
-				if(file.getName().equals("version.ini")) {					
+				//System.out.print(file.getName()+"\n");
+				if(file.getName().equals("version.ini")) {
+					updaterView.pbDescargaArchivo.setValue(0);
+					updaterView.lblNombreArchivoDescarga.setText("Descargando "+file.getName());	
 					String pathToDownloadIniFileVersion = toDownloadPath+"/"+objApp.getExeFieldNameApp()+"/"+file.getName(); 
 					out = new FileOutputStream(pathToDownloadIniFileVersion);
 					ftp.retrieveFile(file.getName(), out);
+					updaterView.pbDescargaArchivo.setValue(100);
 					break;
 				}				
 			}

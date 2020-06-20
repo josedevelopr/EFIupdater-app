@@ -101,6 +101,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			//VALIDAR QUE EL ARCHIVO DE VERSIÓN NO SE ENCUENTRA
 		}		
 		return version;
 	}

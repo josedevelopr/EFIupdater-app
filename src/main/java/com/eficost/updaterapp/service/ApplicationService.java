@@ -9,4 +9,5 @@ public interface ApplicationService{
 	int checkVersion(FtpUpdater updater, Application objApp, IniFile objIni);
 	int checkAppSessions(String exeAppName);
 	String[] getFlgsActAppServer(FtpUpdater updater, Application objApp, IniFile objIni);
+	void openApplication(Application objApp, IniFile objIni);
 }

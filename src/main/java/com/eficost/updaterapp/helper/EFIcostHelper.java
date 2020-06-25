@@ -14,6 +14,8 @@ public class EFIcostHelper {
 		CONTABILIDAD.setId("2");
 		CONTABILIDAD.setName("CONTABILIDAD");
 		CONTABILIDAD.setExeAppName("contabilidad.exe");
+		CONTABILIDAD.setExeDesaAppDiracc("contabilidad_desa.lnk");
+		CONTABILIDAD.setExeProdAppDiracc("contabilidad.lnk");
 		CONTABILIDAD.setPbdApplicationName("2_CONT");
 		CONTABILIDAD.setPbdGlobalName("0_APGL");
 		CONTABILIDAD.setExeFieldNameApp("Contabilidad");
@@ -22,6 +24,8 @@ public class EFIcostHelper {
 		FACTURACION.setId("3");
 		FACTURACION.setName("FACTURACION");
 		FACTURACION.setExeAppName("facturacion.exe");
+		FACTURACION.setExeDesaAppDiracc("facturacion_desa.lnk");
+		FACTURACION.setExeProdAppDiracc("facturacion.lnk");
 		FACTURACION.setPbdApplicationName("3_FACT");
 		FACTURACION.setPbdGlobalName("0_APGL");
 		FACTURACION.setExeFieldNameApp("Facturacion");
@@ -30,6 +34,8 @@ public class EFIcostHelper {
 		RRHH.setId("7");
 		RRHH.setName("RECURSOS_HUMANOS");
 		RRHH.setExeAppName("recursos_humanos.exe");
+		RRHH.setExeDesaAppDiracc("recursos_humanos_desa.lnk");
+		RRHH.setExeProdAppDiracc("recursos_humanos.lnk");
 		RRHH.setPbdApplicationName("4_RRHH");
 		RRHH.setPbdGlobalName("0_FMWK");
 		RRHH.setExeFieldNameApp("RRHH");
@@ -38,6 +44,8 @@ public class EFIcostHelper {
 		CRON.setId("9");
 		CRON.setName("CRONOGRAMA");
 		CRON.setExeAppName("cronos.exe");
+		CRON.setExeDesaAppDiracc("cronos_desa.lnk");
+		CRON.setExeProdAppDiracc("cronos.lnk");
 		CRON.setPbdApplicationName("8_CRON");
 		CRON.setPbdGlobalName("");
 		CRON.setExeFieldNameApp("Cronos");

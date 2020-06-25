@@ -2,6 +2,7 @@ package com.eficost.updaterapp.service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -14,6 +15,7 @@ import org.ini4j.Wini;
 import com.eficost.updaterapp.entities.Application;
 import com.eficost.updaterapp.entities.FtpUpdater;
 import com.eficost.updaterapp.entities.IniFile;
+import com.eficost.updaterapp.view.frmPopUp;
 
 
 public class ApplicationServiceImpl implements ApplicationService { 
@@ -40,10 +42,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 		catch(Exception e) 
 		{
 			e.printStackTrace();
+			frmPopUp popUp = new frmPopUp();
+			popUp.setVisible(true);
+			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
+			popUp.lblAlertMessage.setText("<html><font color='red'>Error al comparar los archivos de versiones.</font></html>");
+			return 0;
 		}
-		
-		
-		return 1;
+	
 	}
 
 	@Override
@@ -102,6 +107,10 @@ public class ApplicationServiceImpl implements ApplicationService {
 		{
 			e.printStackTrace();
 			//VALIDAR QUE EL ARCHIVO DE VERSIÓN NO SE ENCUENTRA
+			frmPopUp popUp = new frmPopUp();
+			popUp.setVisible(true);
+			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
+			popUp.lblAlertMessage.setText("<html><font color='red'>Error al leer el archivo de versión "+type+"</font></html>");
 		}		
 		return version;
 	}
@@ -134,6 +143,10 @@ public class ApplicationServiceImpl implements ApplicationService {
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			frmPopUp popUp = new frmPopUp();
+			popUp.setVisible(true);
+			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
+			popUp.lblAlertMessage.setText("<html><font color='red'>Error : al leer las aplicaciones en ejecución : method - checkAppSessions</font></html>");
 		}
 		
 		return validateRunningApp;
@@ -172,9 +185,44 @@ public class ApplicationServiceImpl implements ApplicationService {
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			frmPopUp popUp = new frmPopUp();
+			popUp.setVisible(true);
+			popUp.lblAlertTitle.setText("Alerta!");
+			popUp.lblAlertMessage.setText("Error al leer el archivo version.ini");
 		}
 			
 		return arrFlgsActAppServer;
+	}
+
+	@Override
+	public void openApplication(Application objApp, IniFile objIni) {
+		String dirAccPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp(); //RutaDesExesAplsUsu
+		
+		ProcessBuilder pb = null;
+		if(objIni.getEnviromentDataBase().equals("desa")) {
+			pb = new ProcessBuilder("cmd", "/c", dirAccPath+"/"+objApp.getExeDesaAppDiracc());
+		}else if(objIni.getEnviromentDataBase().equals("prod")) {
+			pb = new ProcessBuilder("cmd", "/c", dirAccPath+"/"+objApp.getExeProdAppDiracc());
+		}else {
+			frmPopUp popUp = new frmPopUp();	
+			
+			popUp.lblAlertTitle.setText("Alerta!");
+			popUp.lblAlertMessage.setText("Error : El tipo de ambiente de usuario no se reconoce.");
+			popUp.setVisible(true);
+			return;
+		}		
+		Process p;
+		try {
+			p = pb.start();
+			p.waitFor();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		
 	}
 
 }

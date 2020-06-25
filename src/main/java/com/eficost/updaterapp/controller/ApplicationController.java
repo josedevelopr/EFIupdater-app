@@ -24,4 +24,8 @@ public class ApplicationController {
 		return service.getFlgsActAppServer(updater, objApp, objIni);
 	}
 	
+	public void ejecutarAplicación(Application objApp, IniFile objIni) {
+		service.openApplication(objApp, objIni);
+	}
+	
 }

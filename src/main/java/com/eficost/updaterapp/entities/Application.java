@@ -8,7 +8,21 @@ public class Application {
 	private String pbdGlobalName;
 	private String exeFieldNameApp;
 	private String empExClu;
+	private String exeDesaAppDiracc;
+	private String exeProdAppDiracc;
 	
+	public String getExeDesaAppDiracc() {
+		return exeDesaAppDiracc;
+	}
+	public void setExeDesaAppDiracc(String exeDesaAppDiracc) {
+		this.exeDesaAppDiracc = exeDesaAppDiracc;
+	}
+	public String getExeProdAppDiracc() {
+		return exeProdAppDiracc;
+	}
+	public void setExeProdAppDiracc(String exeProdAppDiracc) {
+		this.exeProdAppDiracc = exeProdAppDiracc;
+	}
 	public String getId() {
 		return id;
 	}

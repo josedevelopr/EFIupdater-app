@@ -199,6 +199,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 		String dirAccPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp(); //RutaDesExesAplsUsu
 		
 		ProcessBuilder pb = null;
+		//System.out.print("Dirección de acceso directo : "+dirAccPath+"/"+objApp.getExeDesaAppDiracc());
 		if(objIni.getEnviromentDataBase().equals("desa")) {
 			pb = new ProcessBuilder("cmd", "/c", dirAccPath+"/"+objApp.getExeDesaAppDiracc());
 		}else if(objIni.getEnviromentDataBase().equals("prod")) {

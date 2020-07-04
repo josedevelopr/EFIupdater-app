@@ -14,6 +14,9 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.ImageIcon;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class frmUpdaterEFIcost extends JFrame {
 
@@ -21,6 +24,7 @@ public class frmUpdaterEFIcost extends JFrame {
 	public JProgressBar pbDescargaArchivo;
 	public JLabel lblNombreArchivoDescarga;
 	public JLabel lblTitulo;
+	int lastX, lastY;
 	/**
 	 * Launch the application.
 	 */
@@ -46,6 +50,25 @@ public class frmUpdaterEFIcost extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 449, 240);
 		contentPane = new JPanel();
+		contentPane.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				int x = e.getXOnScreen();
+		        int y = e.getYOnScreen();
+		        // Move frame by the mouse delta
+		        setLocation(getLocationOnScreen().x + x - lastX,
+		                getLocationOnScreen().y + y - lastY);
+		        lastX = x;
+		        lastY = y;
+			}
+		});
+		contentPane.addMouseListener(new MouseAdapter() {		    
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lastX = e.getXOnScreen();
+		        lastY = e.getYOnScreen();
+			}
+		});
 		contentPane.setBackground(Color.WHITE);
 		contentPane.setForeground(Color.WHITE);
 		contentPane.setBorder(new LineBorder(Color.DARK_GRAY));
@@ -53,7 +76,7 @@ public class frmUpdaterEFIcost extends JFrame {
 		contentPane.setLayout(null);
 		
 		pbDescargaArchivo = new JProgressBar();
-		pbDescargaArchivo.setForeground(new Color(30, 144, 255));
+		pbDescargaArchivo.setForeground(new Color(70, 130, 180));
 		pbDescargaArchivo.setBorderPainted(false);
 		pbDescargaArchivo.setBorder(new EmptyBorder(0, 0, 0, 0));
 		pbDescargaArchivo.setBackground(new Color(211, 211, 211));
@@ -78,5 +101,9 @@ public class frmUpdaterEFIcost extends JFrame {
 		
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+		this.setIconImage(createImage("/resource/actualizador-logo3.png").getImage());
+	}
+	public ImageIcon createImage(String path) {
+		return new ImageIcon(java.awt.Toolkit.getDefaultToolkit().getClass().getResource(path));
 	}
 }

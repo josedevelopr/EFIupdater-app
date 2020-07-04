@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,7 +35,7 @@ public class frmPopUp extends JFrame {
 			public void run() {
 				try {
 					frmPopUp frame = new frmPopUp();
-					frame.setVisible(true);
+					frame.setVisible(true);					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -121,8 +122,13 @@ public class frmPopUp extends JFrame {
 		lblAlertMessage.setBounds(0, 68, 450, 86);
 		contentPane.add(lblAlertMessage);
 		
+		
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);		
+		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);	
+		this.setIconImage(createImage("/resource/actualizador-logo3.png").getImage());
 	}
 	
+	public ImageIcon createImage(String path) {
+		return new ImageIcon(java.awt.Toolkit.getDefaultToolkit().getClass().getResource(path));
+	}
 }

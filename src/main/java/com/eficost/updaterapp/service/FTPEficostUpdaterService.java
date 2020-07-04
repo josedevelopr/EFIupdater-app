@@ -13,5 +13,5 @@ public interface FTPEficostUpdaterService {
 	boolean downloadAppFilesFTP(String oriFilesPath, String downFilesPath,String type,FtpUpdater updater, Application objApp, IniFile objIni);
 	boolean downloadResourcesFTP(String oriFilesPath, String downFilesPath,String type,FtpUpdater updater, Application objApp, IniFile objIni);
 	boolean copyFileVersion(FtpUpdater updater, Application objApp, IniFile objIni);
-	
+	boolean validateFTPConnection(FtpUpdater updater);
 }

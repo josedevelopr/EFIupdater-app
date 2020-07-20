@@ -25,10 +25,14 @@ import com.eficost.updaterapp.entities.CryptoEficost;
 
 public class frmCryptoEFIcost extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField txtToEncrypt;
 	private JTextArea txtResult;
-	private JComboBox cboAction;
+	private JComboBox<String> cboAction;
 	private ButtonGroup rbtGroupEncrypTypes;
 	private JRadioButton rdbtnDupter;
 	private JRadioButton rdbtnJdupter;
@@ -116,8 +120,8 @@ public class frmCryptoEFIcost extends JFrame {
 		txtResult = new JTextArea();
 		scrollPane.setViewportView(txtResult);
 		
-		cboAction = new JComboBox();
-		cboAction.setModel(new DefaultComboBoxModel(new String[] {"Encriptar", "Desencriptar"}));
+		cboAction = new JComboBox<String>();
+		cboAction.setModel(new DefaultComboBoxModel<String>(new String[] {"Encriptar", "Desencriptar"}));
 		cboAction.setBounds(20, 52, 342, 20);
 		contentPane.add(cboAction);
 		

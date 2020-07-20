@@ -1,6 +1,7 @@
 package com.eficost.updaterapp.service;
 
 import java.awt.Color;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -42,7 +43,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	public void updateEFIcostFiles() {
 		// Obteniendo el listado objetos de Aplicaciones con sus datos
 		String iniFileName = System.getProperty("user.dir")+"/eficost.ini";
-		//String iniFileName  = "C:/Sistemas_Eficost/RRHH/Desa/eficost.ini";
+		//String iniFileName  = "C:/Sistemas_Eficost/Contabilidad/Desa/eficost.ini";
 		//System.out.print();
 		EFIcostHelper helper = new EFIcostHelper();
 		Application[] lstApplications = helper.ARR_APPLICATION;		
@@ -387,6 +388,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		updaterView.pbDescargaArchivo.setValue(0);
 		try
 		{
+			ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
 			ftp.enterLocalPassiveMode();
@@ -487,7 +489,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				int countFiles = -1;
 				int countDownloadedFiles = 0;
 				int countErrFiles = 0;
-				int percent = 0;
+				//int percent = 0;
 				int total = lstFiles.size();//files.length;
 				int downloadPercent = 0;					
 				// DOWNLOAD FILES ======================================================>>>>>>>>>>>>>>>>>>>>>>
@@ -496,9 +498,9 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				for(FTPFile fileToDownload : lstFiles) {
 					ftp = new FTPClient();
 					ftp.setControlKeepAliveTimeout(600);
-					Date currentdate = Calendar.getInstance().getTime();
-					String time = dateFormat.format(currentdate ); 
-					
+					//Date currentdate = Calendar.getInstance().getTime();
+					//String time = dateFormat.format(currentdate ); 
+					ftp.setUseEPSVwithIPv4(true);
 					ftp.connect(updater.getServerHost());
 					login = ftp.login(updater.getUser(), updater.getPassword());
 					//ftp.setControlKeepAliveReplyTimeout(300);
@@ -654,6 +656,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		String resourcesZip = "recursos.zip";
 		try
 		{
+			ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
 			ftp.enterLocalPassiveMode();
@@ -721,7 +724,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				int countFiles = -1;
 				int countDownloadedFiles = 0;
 				int countErrFiles = 0;
-				int percent = 0;
+				//int percent = 0;
 				int total = lstFiles.size();//files.length;
 				int downloadPercent = 0;					 
 				
@@ -729,9 +732,9 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				for(FTPFile fileToDownload : lstFiles) {
 					ftp.setControlKeepAliveTimeout(600);
 					ftp = new FTPClient();
-					Date currentdate = Calendar.getInstance().getTime();
-					String time = dateFormat.format(currentdate );
-					
+					//Date currentdate = Calendar.getInstance().getTime();
+					//String time = dateFormat.format(currentdate );
+					ftp.setUseEPSVwithIPv4(true);
 					ftp.connect(updater.getServerHost());
 					login = ftp.login(updater.getUser(), updater.getPassword());
 					//ftp.setControlKeepAliveReplyTimeout(300);
@@ -802,14 +805,18 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    		int totalExtract = fileHeaderList.size();//files.length;
 			    		for(FileHeader fileHeader : fileHeaderList) 
 			    		{
-			    			updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());	
-			    			
-		    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
-		    				zipFile.extractFile(fileHeader, downFilesPath+"/");
+			    			updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());			    			
+		    				try {
+		    					zipFile.extractFile(fileHeader, downFilesPath+"/");
+			    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+		    				}		    				
+		    				catch(EOFException ZIPexception) {
+		    					myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Problemas al descargar el archivo."+"\n");
+		    				}
 		    				countDescompressFiles++;			    						
 			    			downloadPercentExtract = 100 * (countDescompressFiles + 1) / totalExtract;
 							updaterView.pbDescargaArchivo.setValue(downloadPercentExtract);
-			    		}
+			    		}			    		
 			    	}
 			    	catch(Exception e)
 			    	{
@@ -871,6 +878,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		FTPClient ftp = new FTPClient();
 		try
 		{
+			ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
@@ -918,6 +926,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		boolean connection = false;
 		try
 		{
+			ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
 			if(login) {		

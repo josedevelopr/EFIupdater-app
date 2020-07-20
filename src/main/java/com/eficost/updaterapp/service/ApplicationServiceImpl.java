@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.ini4j.Config;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.ini4j.Wini;
@@ -56,7 +55,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 		
 		FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
 		Ini 	  ini 			= new Wini(); 	   // => Object to manage with a Ini File
-		Config 	  conf 			= new Config();	   // => Configuration of a Ini File
+		//Config 	  conf 			= new Config();	   // => Configuration of a Ini File
 		String    version 		= "";
 		Section section;	// => Object to manage section of a Ini file
 		try 
@@ -73,7 +72,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 					break;
 					
 				case "server" :
-					
+					objFtpClient.setUseEPSVwithIPv4(true);
 					objFtpClient.connect(updater.getServerHost()); // Connecting to the FTP Server
 					boolean login = objFtpClient.login(updater.getUser(), updater.getPassword()); // Logging to the FTP 
 					objFtpClient.enterLocalPassiveMode();  
@@ -156,11 +155,12 @@ public class ApplicationServiceImpl implements ApplicationService {
 	public String[] getFlgsActAppServer(FtpUpdater updater, Application objApp, IniFile objIni) {
 		FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
 		Ini 	  ini 			= new Wini(); 	   // => Object to manage with a Ini File
-		Config 	  conf 			= new Config();	   // => Configuration of a Ini File
+		//Config 	  conf 			= new Config();	   // => Configuration of a Ini File
 		String[] arrFlgsActAppServer = new String[3];
 		Section section;	// => Object to manage section of a Ini file
 		try 
-		{						
+		{		
+			objFtpClient.setUseEPSVwithIPv4(true);
 			objFtpClient.connect(updater.getServerHost()); // Connecting to the FTP Server
 			boolean login = objFtpClient.login(updater.getUser(), updater.getPassword()); // Logging to the FTP 
 			objFtpClient.enterLocalPassiveMode();  
@@ -197,15 +197,14 @@ public class ApplicationServiceImpl implements ApplicationService {
 	@Override
 	public void openApplication(Application objApp, IniFile objIni) {
 		String dirAccPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp(); //RutaDesExesAplsUsu
-		
+		frmPopUp popUp = new frmPopUp();	
 		ProcessBuilder pb = null;
 		//System.out.print("Dirección de acceso directo : "+dirAccPath+"/"+objApp.getExeDesaAppDiracc());
 		if(objIni.getEnviromentDataBase().equals("desa")) {
-			pb = new ProcessBuilder("cmd", "/c", dirAccPath+"/"+objApp.getExeDesaAppDiracc());
+			pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeDesaAppDiracc());
 		}else if(objIni.getEnviromentDataBase().equals("prod")) {
-			pb = new ProcessBuilder("cmd", "/c", dirAccPath+"/"+objApp.getExeProdAppDiracc());
-		}else {
-			frmPopUp popUp = new frmPopUp();	
+			pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeProdAppDiracc());
+		}else {			
 			
 			popUp.lblAlertTitle.setText("Alerta!");
 			popUp.lblAlertMessage.setText("Error : El tipo de ambiente de usuario no se reconoce.");
@@ -221,7 +220,10 @@ public class ApplicationServiceImpl implements ApplicationService {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
+			popUp.lblAlertTitle.setText("Alerta!");
+			popUp.lblAlertMessage.setText("Error : No se encuentra el acceso directo "+System.getProperty("user.dir")+"/"+objApp.getExeProdAppDiracc());
+			popUp.setVisible(true);
 		}		
 		
 	}

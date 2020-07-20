@@ -20,6 +20,10 @@ import java.awt.event.MouseEvent;
 
 public class frmUpdaterEFIcost extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public JPanel contentPane;
 	public JProgressBar pbDescargaArchivo;
 	public JLabel lblNombreArchivoDescarga;

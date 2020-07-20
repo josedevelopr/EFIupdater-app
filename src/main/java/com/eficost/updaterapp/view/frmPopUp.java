@@ -20,6 +20,10 @@ import javax.swing.UIManager;
 
 public class frmPopUp extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	int lastX, lastY;
 	public JLabel lblAlertTitle;

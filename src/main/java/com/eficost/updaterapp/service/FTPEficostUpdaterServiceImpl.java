@@ -208,8 +208,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		frmPopUp popUp = new frmPopUp();		 
 		updaterView.setVisible(true);
 		updaterView.lblNombreArchivoDescarga.setText("Preparando descarga...");
-		int downloadAFprod = -1, downloadRSprod = -1;
-		int downloadAFdesa = -1, downloadRSdesa = -1;
+		int downloadAFprod = 1, downloadRSprod = 1;
+		int downloadAFdesa = 1, downloadRSdesa = 1;
 		
 		// Validate what is going to be updated (PROD , DESA , SIST)
 		if(updater.getFlgActProd().equals("S")) 
@@ -220,7 +220,10 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			// 2. Copy the app resources from  the ftp server
 			updaterView.lblTitulo.setText("EFIcost Recursos - Actualizando Producción");
 			downloadRSprod = copyAppResourcesToUser("Prod", updater, objApp, objIni);			
-		}
+		}/*else{
+			downloadAFprod = 1;
+			downloadRSprod = 1;
+		}*/
 		if(updater.getFlgActDesa().equals("S")) 
 		{
 			// 1. Copy the app files from  the ftp server
@@ -230,9 +233,12 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			updaterView.lblTitulo.setText("EFIcost Recursos - Actualizando Desarrollo");
 			downloadRSdesa = copyAppResourcesToUser("Desa", updater, objApp, objIni);
 			
-		}
+		}/*else{
+			downloadAFdesa = 1;
+			downloadRSdesa = 1;
+		}*/
 		// Solo se utiliza Desarrollo y producción
-		/*if(updater.getFlgActSist().equals("S")) 
+		if(updater.getFlgActSist().equals("S")) 
 		{
 			// 1. Copy the app files from  the ftp server
 			updaterView.lblTitulo.setText("EFIcost "+objApp.getName()+" - Actualizando Sistemas");
@@ -241,7 +247,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			updaterView.lblTitulo.setText("EFIcost Recursos - Actualizando Sistemas");
 			copyAppResourcesToUser("Sist", updater, objApp, objIni);
 			
-		}*/
+		}
 		// Validando la descarga correcta de los sistemas y sus recursos
 		
 		String mensajeErrorDeDescarga = "<html><font color='red'>";
@@ -401,7 +407,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				if(files != null && files.length > 0) {
 					// Reading each file inside the directory
 					for(FTPFile fl : files) {
-						if(fl.getName().equals(objApp.getExeFieldNameApp().toLowerCase()+".zip")) {
+						if(fl.getName().toLowerCase().equals(objApp.getExeFieldNameApp().toLowerCase()+".zip")) {
 							lstFiles.add(fl);
 							break;
 						}
@@ -669,7 +675,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				if(files != null && files.length > 0) {
 					// Reading each file inside the directory
 					for(FTPFile fl : files) {
-						if(fl.getName().equals(resourcesZip)) {
+						if(fl.getName().toLowerCase().equals(resourcesZip)) {
 							lstFiles.add(fl);
 							break;
 						}						
@@ -807,8 +813,10 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    		{
 			    			updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());			    			
 		    				try {
-		    					zipFile.extractFile(fileHeader, downFilesPath+"/");
-			    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+		    					if(!fileHeader.getFileName().contentEquals("Thumbs.db")) {		    						
+		    						zipFile.extractFile(fileHeader, downFilesPath+"/");
+				    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+		    					}		    					
 		    				}		    				
 		    				catch(EOFException ZIPexception) {
 		    					myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Problemas al descargar el archivo."+"\n");

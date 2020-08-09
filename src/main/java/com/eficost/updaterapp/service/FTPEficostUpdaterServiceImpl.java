@@ -43,7 +43,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	public void updateEFIcostFiles() {
 		// Obteniendo el listado objetos de Aplicaciones con sus datos
 		String iniFileName = System.getProperty("user.dir")+"/eficost.ini";
-		//String iniFileName  = "C:/Sistemas_Eficost/Contabilidad/Desa/eficost.ini";
+		//String iniFileName  = "C:/Sistemas_Eficost/RRHH/Desa/eficost.ini";
 		//System.out.print();
 		EFIcostHelper helper = new EFIcostHelper();
 		Application[] lstApplications = helper.ARR_APPLICATION;		
@@ -238,7 +238,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			downloadRSdesa = 1;
 		}*/
 		// Solo se utiliza Desarrollo y producción
-		if(updater.getFlgActSist().equals("S")) 
+		/*if(updater.getFlgActSist().equals("S")) 
 		{
 			// 1. Copy the app files from  the ftp server
 			updaterView.lblTitulo.setText("EFIcost "+objApp.getName()+" - Actualizando Sistemas");
@@ -247,7 +247,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			updaterView.lblTitulo.setText("EFIcost Recursos - Actualizando Sistemas");
 			copyAppResourcesToUser("Sist", updater, objApp, objIni);
 			
-		}
+		}*/
 		// Validando la descarga correcta de los sistemas y sus recursos
 		
 		String mensajeErrorDeDescarga = "<html><font color='red'>";

@@ -129,7 +129,7 @@ public class frmPopUp extends JFrame {
 		
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);	
-		this.setIconImage(createImage("/resource/actualizador-logo3.png").getImage());
+		//this.setIconImage(createImage("/resource/actualizador-logo3.png").getImage());
 	}
 	
 	public ImageIcon createImage(String path) {

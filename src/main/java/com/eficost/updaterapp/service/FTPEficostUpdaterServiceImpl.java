@@ -11,10 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -32,7 +31,7 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
 public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
-
+	private static final Logger log = Logger.getLogger(FTPEficostUpdaterServiceImpl.class.getName());
 	CryptoEficostController ceController = new CryptoEficostController(); 
 	ApplicationController appController = new ApplicationController();
 	
@@ -40,35 +39,31 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	frmUpdaterEFIcost updaterView = new frmUpdaterEFIcost(); 
 	
 	@Override
-	public void updateEFIcostFiles() {
-		// Obteniendo el listado objetos de Aplicaciones con sus datos
-		String iniFileName = System.getProperty("user.dir")+"/eficost.ini";
-		//String iniFileName  = "C:/Sistemas_Eficost/RRHH/Desa/eficost.ini";
+	public void updateEFIcostFiles()
+	{	// Obteniendo el listado objetos de Aplicaciones con sus datos
+		//String iniFileName = System.getProperty("user.dir")+"/eficost.ini";
+		String initFileDIR  = "C:/Sistemas_Eficost/RRHH/Desa/eficost.ini";
 		//System.out.print();
 		EFIcostHelper helper = new EFIcostHelper();
 		Application[] lstApplications = helper.ARR_APPLICATION;		
-		Application objApplication = new Application(); 
+		Application objApplication = new Application();
 		IniFile ini = new IniFile();
-		File fileIni = new File(iniFileName); 
-		FtpUpdater objFtpUpdater = new FtpUpdater(); 		 
-		String initFileDIR = iniFileName;
+		File fileIni = new File(initFileDIR);
+		FtpUpdater objFtpUpdater = new FtpUpdater();
 		
 		// Validating the eficost.ini exists in the current path
 		if(!fileIni.exists())
-		{
-			//System.out.print("No hay eficost.ini");
+		{	//System.out.print("No hay eficost.ini");
 			frmPopUp popUp = new frmPopUp();
 			popUp.pnlBckButton.setBackground(new Color(235, 64, 52));
 			popUp.pnlDragBar.setBackground(new Color(235, 64, 52));			
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
-			popUp.lblAlertMessage.setText("<html><font color='red'>No se encuentra el archivo "+iniFileName+"<br>");
+			popUp.lblAlertMessage.setText("<html><font color='red'>No se encuentra el archivo "+initFileDIR+"<br>");
 			popUp.setVisible(true);
 			return;
 		}
-		
 		try 
-		{
-			// Variables para la actualizacion
+		{	// Variables para la actualizacion
 			String module 		= ceController.obtenerValorDePropiedadDesencriptado(initFileDIR,"EFIUPDATER","MODULO");
 			String envApp 		= ceController.obtenerValorDePropiedadDesencriptado(initFileDIR,"EFIUPDATER","ENTORNOAPL");
 			String envUser		= ceController.obtenerValorDePropiedadDesencriptado(initFileDIR,"EFIUPDATER","ENTORNOUSU");
@@ -112,8 +107,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			
 			//validating the connection with the server
 			boolean connection = validateFTPConnection(objFtpUpdater);
-			if(connection == false) {
-				frmPopUp popUp = new frmPopUp();
+			if(!connection)
+			{	frmPopUp popUp = new frmPopUp();
 				popUp.pnlBckButton.setBackground(new Color(235, 64, 52));
 				popUp.pnlDragBar.setBackground(new Color(235, 64, 52));
 				popUp.setVisible(true);
@@ -122,33 +117,29 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 											  "<br>Validar conexión a internet.</font></html>");
 				return;
 			}
-					
 		}
 		catch(Exception e) 
-		{
-			e.printStackTrace();
+		{	e.printStackTrace();
 			ini = new IniFile();
 			frmPopUp popUp = new frmPopUp();
 			popUp.pnlBckButton.setBackground(new Color(235, 64, 52));
 			popUp.pnlDragBar.setBackground(new Color(235, 64, 52));
 			popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
-			popUp.lblAlertMessage.setText("<html><font color='red'>Error al leer la información del "+iniFileName+
-										  "<br>Validar la estructura de "+iniFileName+"</font></html>");
+			popUp.lblAlertMessage.setText("<html><font color='red'>Error al leer la información del "+initFileDIR+
+										  "<br>Validar la estructura de "+initFileDIR+"</font></html>");
 			return;
 		}
 		
 		// Variables de la aplicacion
 		String CODIGOAPLICACION	= ceController.obtenerValorDePropiedadDesencriptado(initFileDIR,"EFIUPDATER","CODIGOAPLICACION");		
 		
-		// Obteniendo los datos de la aplicaci�n
-		
-		for(Application app : lstApplications) {
-			if(app.getId().equals(CODIGOAPLICACION)) {
-				objApplication = app;
-				break;
-			}			
-		}
+		// Obteniendo los datos de la aplicacion
+		Application emptyApp = new Application();
+		objApplication = Arrays.stream(lstApplications)
+							   .filter(app -> app.getId().equals(CODIGOAPLICACION))
+				               .findFirst()
+							   .orElse(emptyApp);
 
 		frmPopUp popUp = new frmPopUp();
 		// Definiendo el entorno del usuario
@@ -161,39 +152,29 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			case "USU" :
 				int validateVersion =  appController.compararVersion(objFtpUpdater, objApplication, ini);
 				if(validateVersion == -1) 
-				{
-					int numberOfOpenSessions = appController.validarSesionActivas(objApplication.getExeAppName());
+				{	int numberOfOpenSessions = appController.validarSesionActivas(objApplication.getExeAppName());
 					if(numberOfOpenSessions > 0) 
-					{
-						popUp.setVisible(true);
+					{	popUp.setVisible(true);
 						popUp.lblAlertTitle.setText("Mensaje :");
 						popUp.lblAlertMessage.setText("Tiene ventanas del sistema ejecutándose, cierrelas para actualizar por favor.");
 						return;
 					}
 					else 
-					{
-						// ACTUALIZAR CARPETAS
+					{	// ACTUALIZAR CARPETAS
 						String[] arrFlgsActApp = appController.obtenerFlgsActDeLaAplicacionServer(objFtpUpdater, objApplication, ini);
 						objFtpUpdater.setFlgActProd(arrFlgsActApp[0]);
 						objFtpUpdater.setFlgActDesa(arrFlgsActApp[1]);
 						objFtpUpdater.setFlgActSist(arrFlgsActApp[2]);
 						updateClient(objFtpUpdater,objApplication,ini);
-						
 					}
 				}
 				else if(validateVersion == 1)
-				{
-					// SHOW SUCCESSFUL MESSAGE : "THE EFICOST UPDATE WAS SUCCESSFUL"					
-					/*popUp.setVisible(true);
-					popUp.lblAlertTitle.setText("Mensaje :");
-					popUp.lblAlertMessage.setText("El sistema está actualizado.");*/
-					// RUN .EXE FILE
+				{	// RUN .EXE FILE
 					appController.ejecutarAplicación(objApplication, ini);
 					return;
 				}
 				else if(validateVersion == 0)
-				{	
-					// RUN .EXE FILE
+				{	// RUN .EXE FILE
 					appController.ejecutarAplicación(objApplication, ini);
 					return;
 				}
@@ -204,8 +185,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	}
 
 	@Override
-	public void updateClient(FtpUpdater updater, Application objApp, IniFile objIni) {
-		frmPopUp popUp = new frmPopUp();		 
+	public void updateClient(FtpUpdater updater, Application objApp, IniFile objIni)
+	{	frmPopUp popUp = new frmPopUp();
 		updaterView.setVisible(true);
 		updaterView.lblNombreArchivoDescarga.setText("Preparando descarga...");
 		int downloadAFprod = 1, downloadRSprod = 1;
@@ -213,8 +194,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		
 		// Validate what is going to be updated (PROD , DESA , SIST)
 		if(updater.getFlgActProd().equals("S")) 
-		{
-			// 1. Copy the app files from  the ftp server
+		{	// 1. Copy the app files from  the ftp server
 			updaterView.lblTitulo.setText("EFIcost "+objApp.getName()+" - Actualizando Producción");
 			downloadAFprod = copyAppFilesToUser("Prod",updater,objApp,objIni);			
 			// 2. Copy the app resources from  the ftp server
@@ -225,8 +205,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			downloadRSprod = 1;
 		}*/
 		if(updater.getFlgActDesa().equals("S")) 
-		{
-			// 1. Copy the app files from  the ftp server
+		{	// 1. Copy the app files from  the ftp server
 			updaterView.lblTitulo.setText("EFIcost "+objApp.getName()+" - Actualizando Desarrollo");
 			downloadAFdesa = copyAppFilesToUser("Desa",updater,objApp,objIni);
 			// 2. Copy the app resources from  the ftp server
@@ -252,31 +231,31 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		
 		String mensajeErrorDeDescarga = "<html><font color='red'>";
 
-		if(downloadAFprod != 1) {
-			mensajeErrorDeDescarga += "Error : Al descargar archivos de aplicación de prod.<br>";
+		if(downloadAFprod != 1)
+		{	mensajeErrorDeDescarga += "Error : Al descargar archivos de aplicación de prod.<br>";
 		}
-		if(downloadRSprod != 1){
-			mensajeErrorDeDescarga += "Error : Al descargar recursos de prod.<br>";
+		if(downloadRSprod != 1)
+		{	mensajeErrorDeDescarga += "Error : Al descargar recursos de prod.<br>";
 		}
-		if(downloadAFdesa != 1) {
-			mensajeErrorDeDescarga += "Error : Al descargar archivos de aplicación de prod.<br>";
+		if(downloadAFdesa != 1)
+		{	mensajeErrorDeDescarga += "Error : Al descargar archivos de aplicación de prod.<br>";
 		}
-		if(downloadRSdesa != 1){
-			mensajeErrorDeDescarga += "Error : Al descargar recursos de desa.<br>";
+		if(downloadRSdesa != 1)
+		{	mensajeErrorDeDescarga += "Error : Al descargar recursos de desa.<br>";
 		}
 		mensajeErrorDeDescarga += "Comunicarse con el soporte.";
 		mensajeErrorDeDescarga += "</font></html>";
 		
-		if(downloadAFprod!=1 || downloadRSprod!=1 || downloadAFdesa!=1 || downloadRSdesa!=1) {
-			popUp.setVisible(true);			
+		if(downloadAFprod!=1 || downloadRSprod!=1 || downloadAFdesa!=1 || downloadRSdesa!=1)
+		{	popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta :</font></html>");
 			popUp.lblAlertMessage.setText(mensajeErrorDeDescarga);
 			updaterView.dispose();
 			return;
-		}else {
-			boolean download = copyFileVersion(updater, objApp, objIni);
-			if(!download) {
-				// SHOW ERROR MESSAGE : "THE VERSION FILE DOWNLOAD WAS UNSUCCESSFUL"
+		} else
+		{	boolean download = copyFileVersion(updater, objApp, objIni);
+			if(!download)
+			{	// SHOW ERROR MESSAGE : "THE VERSION FILE DOWNLOAD WAS UNSUCCESSFUL"
 				popUp.setVisible(true);
 				popUp.lblAlertTitle.setText("<html><font color='red'>Alerta :</font></html>");
 				popUp.lblAlertMessage.setText("<html>"
@@ -298,8 +277,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	}
 
 	@Override
-	public int copyAppFilesToUser(String type,FtpUpdater updater, Application objApp, IniFile objIni) {
-		String	ls_RutaOriArchs, ls_RutaDesArchs;
+	public int copyAppFilesToUser(String type,FtpUpdater updater, Application objApp, IniFile objIni)
+	{	String	ls_RutaOriArchs, ls_RutaDesArchs;
 		
 		ls_RutaOriArchs = objIni.getRutades2exesapls() + "/" + objApp.getExeFieldNameApp();
 		ls_RutaDesArchs = objIni.getRutadesexesaplsusu()+ "/" + objApp.getExeFieldNameApp() + "/" + type;
@@ -311,8 +290,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		
 		if(download) {
 			return 1;
-		}else {
-			// SHOW MESSAGE THE downloadAppFilesFTP WAS UNSUCCESS
+		} else
+		{	// SHOW MESSAGE THE downloadAppFilesFTP WAS UNSUCCESS
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
@@ -346,25 +325,18 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	}
 
 	@Override
-	public int createLocalDirectoryFolders(String localDirectory) {
-		File directory = new File(localDirectory);
+	public int createLocalDirectoryFolders(String localDirectory)
+	{	File directory = new File(localDirectory);
 		boolean createDir = false;
 		// Validate if the directory doesn't exist
 		try
-		{
-			boolean existsDir = directory.exists();			
+		{	boolean existsDir = directory.exists();
 			if(!existsDir)
-			{
-				// We create the directory we specified as the parameter "localDirectory"
+			{	// We create the directory we specified as the parameter "localDirectory"
 				// and then, we validate if the creation was successful
 				createDir = directory.mkdirs();
-				if(createDir)
-				{
-					// Set to the log we created the path
-				}
-				else 
-				{
-					frmPopUp popUp = new frmPopUp();
+				if(!createDir)
+				{	frmPopUp popUp = new frmPopUp();
 					popUp.setVisible(true);
 					popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 					popUp.lblAlertMessage.setText("<html><font color='red'>No se pudo crear carpeta.</font></html>");	
@@ -372,8 +344,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			}
 		}
 		catch(Exception e) 
-		{
-			e.printStackTrace();
+		{	e.printStackTrace();
 			// Set to the log error
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
@@ -387,14 +358,13 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 
 	@Override
 	public boolean downloadAppFilesFTP(String oriFilesPath, String downFilesPath,String type,FtpUpdater updater, Application objApp, IniFile objIni) {
-		List<FTPFile> lstFiles = new ArrayList<FTPFile>();
+		List<FTPFile> lstFiles = new ArrayList<>();
 		FTPClient ftp = new FTPClient();
 		String iniFilePath = "";
 		//ftp.setUseEPSVwithIPv4( true );
 		updaterView.pbDescargaArchivo.setValue(0);
 		try
-		{
-			ftp.setUseEPSVwithIPv4(true);
+		{	ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
 			ftp.enterLocalPassiveMode();
@@ -402,83 +372,72 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			ftp.changeWorkingDirectory(remoteDIR);
 			FTPFile[] files = ftp.listFiles();
 			
-			if(login) {				
-				// Validating files in the server directory
-				if(files != null && files.length > 0) {
-					// Reading each file inside the directory
-					for(FTPFile fl : files) {
-						if(fl.getName().toLowerCase().equals(objApp.getExeFieldNameApp().toLowerCase()+".zip")) {
-							lstFiles.add(fl);
-							break;
-						}
-					}
+			if(login)
+			{	// Validating files in the server directory
+				if(files != null && files.length > 0)
+				{	lstFiles = Arrays.stream(files)
+									 .filter(file -> file.getName().toLowerCase().equals(objApp.getExeFieldNameApp().toLowerCase()+".zip"))
+									 .collect(Collectors.toList());
 				}
 				
-				
 				FTPFile[] filesToGetIni = ftp.listFiles();
-				if(filesToGetIni != null && filesToGetIni.length > 0) {
-					for(FTPFile file : filesToGetIni) {
-						if(file.getName().equals(objIni.getConfigurationFileName())) {
-							switch(type) {
-								case "Desa":
-										iniFilePath = updater.getRemoteDIR()+oriFilesPath+"/Desa";										
-									break;
-								case "Sist":
-										iniFilePath = updater.getRemoteDIR()+oriFilesPath+"/Sist";										
-									break; 
-								case "Prod":
-										lstFiles.add(file);										
-									break;
-								default:
-									break;
-									
+				if(filesToGetIni != null && filesToGetIni.length > 0)
+				{
+					for(FTPFile file : filesToGetIni)
+					{ if(file.getName().equals(objIni.getConfigurationFileName()))
+					  {	    switch(type)
+							{		case "Desa":
+											iniFilePath = updater.getRemoteDIR()+oriFilesPath+"/Desa";
+										break;
+									case "Sist":
+											iniFilePath = updater.getRemoteDIR()+oriFilesPath+"/Sist";
+										break;
+									case "Prod":
+											lstFiles.add(file);
+										break;
+									default:
+										break;
 							}
-							if(type.equals("Desa") || type.equals("Sist")) {
-								ftp.changeWorkingDirectory("/");
+							if(type.equals("Desa") || type.equals("Sist"))
+							{	ftp.changeWorkingDirectory("/");
 								ftp.changeWorkingDirectory(iniFilePath);
 								FTPFile[] iniFileList = ftp.listFiles();
-								for(FTPFile iniFile : iniFileList) {
-									if(iniFile.getName().equals(objIni.getConfigurationFileName())) {
-										lstFiles.add(iniFile);
+								for(FTPFile iniFile : iniFileList)
+								{	if(iniFile.getName().equals(objIni.getConfigurationFileName()))
+									{	lstFiles.add(iniFile);
 										break;
 									}
 								}
-							}							
+							}
 							break;
-						}					
+					  }
 					}
 					ftp.logout();
 					ftp.disconnect();
 				}		
 			}
 			
-			
 			if(lstFiles.isEmpty()) 
-			{
-				frmPopUp popUp = new frmPopUp();
+			{	frmPopUp popUp = new frmPopUp();
 				popUp.setVisible(true);
 				popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 				popUp.lblAlertMessage.setText("<html><font color='red'>No hay archivos para descargar el Servidor.</font></html>");
-			}
-			else 
-			{
-				
-				String logFilePath = objIni.getRutalogprocusu()+"/"+objApp.getExeFieldNameApp();					
+			} else
+			{	String logFilePath = objIni.getRutalogprocusu()+"/"+objApp.getExeFieldNameApp();
 				createLocalDirectoryFolders(logFilePath);
 				String logDIR = logFilePath+"/"+objApp.getName()+type+".log";
 				Path logpath = Paths.get(logDIR);
 				FileWriter myWriter = null;
 				
 				boolean delete = Files.deleteIfExists(logpath);
-				if(!delete) {
-					// MESSAGE TO ALERT THAT THE LOG FILE WASN'T DELETED
+				if(!delete)
+				{	// MESSAGE TO ALERT THAT THE LOG FILE WASN'T DELETED
 				}
 				File logFile = new File(logDIR);
-				if(logFile.createNewFile()) {						
-					
-					myWriter = new FileWriter(logDIR);
-				}else {
-					// MESSAGE TO ALERT THAT THE LOG FILE WASN'T CREATED						
+				if(logFile.createNewFile())
+				{	myWriter = new FileWriter(logDIR);
+				} else
+				{	// MESSAGE TO ALERT THAT THE LOG FILE WASN'T CREATED
 				}
 				Date date = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");  
@@ -501,8 +460,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				// DOWNLOAD FILES ======================================================>>>>>>>>>>>>>>>>>>>>>>
 				// Iterate the lstFiles and start to download each file inside the list
 				OutputStream outFiletoDownload = null;
-				for(FTPFile fileToDownload : lstFiles) {
-					ftp = new FTPClient();
+				for(FTPFile fileToDownload : lstFiles)
+				{	ftp = new FTPClient();
 					ftp.setControlKeepAliveTimeout(600);
 					//Date currentdate = Calendar.getInstance().getTime();
 					//String time = dateFormat.format(currentdate ); 
@@ -513,8 +472,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 					ftp.enterLocalPassiveMode();
 					String serverDIR = updater.getRemoteDIR()+oriFilesPath;
 					
-					if((type.equals("Desa") && fileToDownload.getName().equals(objIni.getConfigurationFileName()))) {
-						serverDIR = iniFilePath;
+					if((type.equals("Desa") && fileToDownload.getName().equals(objIni.getConfigurationFileName())))
+					{	serverDIR = iniFilePath;
 					}
 					
 					ftp.changeWorkingDirectory(serverDIR);		 			
@@ -523,8 +482,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 					updaterView.lblNombreArchivoDescarga.setText("Descargando "+fileToDownload.getName());
 					outFiletoDownload = new FileOutputStream(currentFilePathtoDownload+"/"+fileToDownload.getName());
 					
-					if(ftp.retrieveFile(fileToDownload.getName(), outFiletoDownload)) {
-						// To  debug
+					if(ftp.retrieveFile(fileToDownload.getName(), outFiletoDownload))
+					{	// To  debug
 						/*System.out.print("\n");
 						System.out.print(time+"\n");
 						System.out.print("Descargando en :"+currentFilePathtoDownload+" \n");					
@@ -536,11 +495,10 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 						// To  debug
 						countDownloadedFiles++;
 						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Se descargó el archivo con éxito."+"\n");
-					}else {
-						countErrFiles++;
-						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Problemas al descargar el archivo."+"\n");							
-											
-					}					
+					} else
+					{	countErrFiles++;
+						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Problemas al descargar el archivo."+"\n");
+					}
 					
 					countFiles++;
 					downloadPercent = 100 * (countFiles + 1) / total;
@@ -577,20 +535,16 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    File file = new File(zipPath);			    
 			    List<FileHeader> fileHeaderList = new ArrayList<FileHeader>();
 			    if(file.exists() && !file.isDirectory()) 
-			    {	
-			    	try
-			    	{	
-			    		ZipFile zipFile = new ZipFile(zipPath);
+			    {	try
+			    	{	ZipFile zipFile = new ZipFile(zipPath);
 				    	//zipFile.setRunInThread(true);
 				    	//ProgressMonitor progressMonitor = zipFile.getProgressMonitor();				    	
 			    		fileHeaderList = zipFile.getFileHeaders();
 			    		int totalExtract = fileHeaderList.size();//files.length;
 						int downloadPercentExtract = 0;
 			    		for(FileHeader fileHeader : fileHeaderList) 
-			    		{
-			    			if(fileHeader.getFileName().endsWith(".pbd") || fileHeader.getFileName().equals(objApp.getExeAppName())) 
-			    			{
-			    				updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());			    			
+			    		{	if(fileHeader.getFileName().endsWith(".pbd") || fileHeader.getFileName().equals(objApp.getExeAppName()))
+			    			{	updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());
 				    			zipFile.extractFile(fileHeader, downFilesPath+"/");
 				    			myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
 
@@ -602,27 +556,11 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    		
 			    	}
 			    	catch(Exception e)
-			    	{
-			    		e.printStackTrace();
-			    	}
-			    	finally 
-			    	{
-			    		try
-			    		{
-			    			file.delete();
-			    		}
-			    		catch(Exception e)
-			    		{
-			    			frmPopUp popUp = new frmPopUp();
-							popUp.setVisible(true);
-							popUp.lblAlertTitle.setText("Alerta!");
-							popUp.lblAlertMessage.setText("Error al eliminar "+objApp.getExeFieldNameApp()+".zip.");
-			    		}
-			    		
+			    	{	e.printStackTrace();
 			    	}
 			    }
-			    else {
-			    	frmPopUp popUp = new frmPopUp();
+			    else
+				{	frmPopUp popUp = new frmPopUp();
 			    	popUp.setVisible(true);
 					popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 					popUp.lblAlertMessage.setText("<html><font color='red'>Error al obtener archivo ZIP.</font></html>");
@@ -661,8 +599,7 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 		updaterView.pbDescargaArchivo.setValue(0);
 		String resourcesZip = "recursos.zip";
 		try
-		{
-			ftp.setUseEPSVwithIPv4(true);
+		{	ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
 			boolean login = ftp.login(updater.getUser(), updater.getPassword());
 			ftp.enterLocalPassiveMode();
@@ -670,33 +607,24 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			ftp.changeWorkingDirectory(resourcesPath);
 			FTPFile[] files = ftp.listFiles();
 			
-			if(login) {				
-				// Validating files in the server directory
-				if(files != null && files.length > 0) {
-					// Reading each file inside the directory
-					for(FTPFile fl : files) {
-						if(fl.getName().toLowerCase().equals(resourcesZip)) {
-							lstFiles.add(fl);
-							break;
-						}						
-					}
-					
+			if(login)
+			{	// Validating files in the server directory
+				if(files != null && files.length > 0)
+				{	lstFiles = Arrays.stream(files)
+									 .filter(file -> file.getName().toLowerCase().equals(resourcesZip))
+									 .collect(Collectors.toList());
 					ftp.logout();
 					ftp.disconnect();	
 				}
 			}
 			
 			if(lstFiles.isEmpty()) 
-			{
-				frmPopUp popUp = new frmPopUp();
+			{	frmPopUp popUp = new frmPopUp();
 				popUp.setVisible(true);
 				popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 				popUp.lblAlertMessage.setText("<html><font color='red'>No hay recursos para descargar el Servidor.</font></html>");
-			}
-			else 
-			{
-				
-				OutputStream outFiletoDownload = null;
+			} else
+			{	OutputStream outFiletoDownload = null;
 				String logFilePath = objIni.getRutalogprocusu()+"/"+objApp.getExeFieldNameApp();
 				
 				createLocalDirectoryFolders(logFilePath);
@@ -735,8 +663,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 				int downloadPercent = 0;					 
 				
 				// Iterate the lstFiles and start to download each file inside the list
-				for(FTPFile fileToDownload : lstFiles) {
-					ftp.setControlKeepAliveTimeout(600);
+				for(FTPFile fileToDownload : lstFiles)
+				{	ftp.setControlKeepAliveTimeout(600);
 					ftp = new FTPClient();
 					//Date currentdate = Calendar.getInstance().getTime();
 					//String time = dateFormat.format(currentdate );
@@ -751,11 +679,11 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 					updaterView.lblNombreArchivoDescarga.setText("Descargando "+fileToDownload.getName());
 					outFiletoDownload = new FileOutputStream(currentFilePathtoDownload+"/"+fileToDownload.getName());
 					
-					if(ftp.retrieveFile(fileToDownload.getName(), outFiletoDownload)) {
-						countDownloadedFiles++;
+					if(ftp.retrieveFile(fileToDownload.getName(), outFiletoDownload))
+					{	countDownloadedFiles++;
 						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Se descargó el archivo con éxito."+"\n");
-					}else {
-						countErrFiles++;
+					} else
+					{	countErrFiles++;
 						myWriter.write(currentFilePathtoDownload+"/"+fileToDownload.getName()+" - Problemas al descargar el archivo."+"\n");							
 					}
 					
@@ -798,11 +726,8 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    File file = new File(zipPath);			    
 			    List<FileHeader> fileHeaderList = new ArrayList<FileHeader>();
 			    if(file.exists() && !file.isDirectory()) 
-			    {	
-			    	try
-			    	{
-			    		
-						int downloadPercentExtract = 0;
+			    {	try
+			    	{	int downloadPercentExtract = 0;
 						
 			    		ZipFile zipFile = new ZipFile(zipPath);
 				    	//zipFile.setRunInThread(true);
@@ -810,16 +735,18 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    		fileHeaderList = zipFile.getFileHeaders();
 			    		int totalExtract = fileHeaderList.size();//files.length;
 			    		for(FileHeader fileHeader : fileHeaderList) 
-			    		{
-			    			updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());			    			
-		    				try {
-		    					if(!fileHeader.getFileName().contentEquals("Thumbs.db")) {		    						
-		    						zipFile.extractFile(fileHeader, downFilesPath+"/");
+			    		{	updaterView.lblNombreArchivoDescarga.setText("Descomprimiendo "+fileHeader.getFileName());
+		    				try
+							{	if(!fileHeader.getFileName().contentEquals("Thumbs.db") && !fileHeader.getFileName().endsWith(".txt") && !fileHeader.getFileName().endsWith(".zip")) {
+									if(fileHeader.getFileName().contentEquals("onomastico.jpg"))
+									{ log.warning("-- ALERT --");
+									}
+									zipFile.extractFile(fileHeader, downFilesPath+"/");
 				    				myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Se descomprimió el archivo con éxito."+"\n");
+									log.info(fileHeader.getFileName());
 		    					}		    					
-		    				}		    				
-		    				catch(EOFException ZIPexception) {
-		    					myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Problemas al descargar el archivo."+"\n");
+		    				} catch(EOFException ZIPexception)
+							{	myWriter.write(downFilesPath+"/"+fileHeader.getFileName()+" - Problemas al descargar el archivo."+"\n");
 		    				}
 		    				countDescompressFiles++;			    						
 			    			downloadPercentExtract = 100 * (countDescompressFiles + 1) / totalExtract;
@@ -829,22 +756,6 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 			    	catch(Exception e)
 			    	{
 			    		e.printStackTrace();
-			    	}
-			    	finally 
-			    	{
-			    		try
-			    		{
-			    			file.delete();
-			    		}
-			    		catch(Exception e)
-			    		{
-			    			frmPopUp popUp = new frmPopUp();
-							popUp.setVisible(true);
-							popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
-							popUp.lblAlertMessage.setText("<html><font color='red'>Error al eliminar "+objApp.getExeFieldNameApp()+".zip.</font></html>");
-			    		}
-			    		
-			    		
 			    	}
 			    }
 			    else {
@@ -928,24 +839,17 @@ public class FTPEficostUpdaterServiceImpl implements FTPEficostUpdaterService{
 	}
 
 	@Override
-	public boolean validateFTPConnection(FtpUpdater updater) {
-
-		FTPClient ftp = new FTPClient();
+	public boolean validateFTPConnection(FtpUpdater updater)
+	{	FTPClient ftp = new FTPClient();
 		boolean connection = false;
 		try
-		{
-			ftp.setUseEPSVwithIPv4(true);
+		{	ftp.setUseEPSVwithIPv4(true);
 			ftp.connect(updater.getServerHost());
-			boolean login = ftp.login(updater.getUser(), updater.getPassword());
-			if(login) {		
-				connection = true;
-			}else{
-				connection = false;
-			}
+			connection = ftp.login(updater.getUser(), updater.getPassword());
 			ftp.logout();
 			ftp.disconnect();
-		}catch(Exception e) {
-			connection = false;
+		} catch(Exception e)
+		{	connection = false;
 		}
 		return connection;
 	}

@@ -20,50 +20,41 @@ import com.eficost.updaterapp.view.frmPopUp;
 public class ApplicationServiceImpl implements ApplicationService { 
 	
 	@Override
-	public int checkVersion(FtpUpdater updater, Application objApp, IniFile objIni) {
-		
-		String serverVersion = null;
-		String localVersion = null;  
-		
+	public int checkVersion(FtpUpdater updater, Application objApp, IniFile objIni)
+	{	String serverVersion = null;
+		String localVersion = null;
+
 		try 
-		{
-			serverVersion = appVersion(updater, objApp, objIni, "server");
+		{	serverVersion = appVersion(updater, objApp, objIni, "server");
 			localVersion = appVersion(updater, objApp, objIni, "local"); 
 			
 			if(!serverVersion.equals(localVersion)) 
-			{
-				return -1;
+			{	return -1;
 			}
-			else {
-				return 1;
+			else
+			{	return 1;
 			}
 		}
 		catch(Exception e) 
-		{
-			e.printStackTrace();
+		{	e.printStackTrace();
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 			popUp.lblAlertMessage.setText("<html><font color='red'>Error al comparar los archivos de versiones.</font></html>");
 			return 0;
 		}
-	
 	}
 
 	@Override
-	public String appVersion(FtpUpdater updater, Application objApp, IniFile objIni, String type) {
-		
-		FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
+	public String appVersion(FtpUpdater updater, Application objApp, IniFile objIni, String type)
+	{	FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
 		Ini 	  ini 			= new Wini(); 	   // => Object to manage with a Ini File
 		//Config 	  conf 			= new Config();	   // => Configuration of a Ini File
 		String    version 		= "";
 		Section section;	// => Object to manage section of a Ini file
-		try 
-		{	
-			switch(type) // Validating the type
-			{
-				case "local" :
-					
+		try
+		{	switch(type) // Validating the type
+			{	case "local" :
 					//ini.load(new File(updater.getLocalDIR()+"/"+objApp.getExeFieldNameApp()+"/version.ini"));
 					String iniLocalPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp()+"/version.ini";
 					ini.load(new File(iniLocalPath)); 
@@ -80,10 +71,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 					FTPFile[] files = objFtpClient.listFiles(); // Getting all the files inside the directory we want
 					
 					if(login) // Validating the login 
-					{
-						if(files != null && files.length >0) 
-						{
-							/// Loading the file version.ini in the path we specify
+					{	if(files != null && files.length >0)
+						{	/// Loading the file version.ini in the path we specify
 							//ini.load(new InputStreamReader(objFtpClient.retrieveFileStream("/"+updater.getRemoteDIR()+"/"+objApp.getExeFieldNameApp()+"/version.ini")));
 							String iniPath = "/"+updater.getRemoteDIR()+objIni.getRutades2exesapls()+"/"+objApp.getExeFieldNameApp()+"/version.ini";
 							ini.load(new InputStreamReader(objFtpClient.retrieveFileStream(iniPath)));
@@ -99,12 +88,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 				default :
 					version = "";
 					break;
-			}			
-				
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
+			}
+		} catch(Exception e)
+		{	e.printStackTrace();
 			//VALIDAR QUE EL ARCHIVO DE VERSIÓN NO SE ENCUENTRA
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
@@ -115,13 +101,11 @@ public class ApplicationServiceImpl implements ApplicationService {
 	}
 
 	@Override
-	public int checkAppSessions(String exeAppName) {
-		 
-		String line; // => Variable to iterate each running app
+	public int checkAppSessions(String exeAppName)
+	{	String line; // => Variable to iterate each running app
 		int validateRunningApp = 0;
 		try
-		{
-			// Object to get all the current running app 
+		{	// Object to get all the current running app
 			Process process = Runtime.getRuntime().exec
 		    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe /fo csv /nh");
 			// Object to read the variable 'p'
@@ -129,38 +113,32 @@ public class ApplicationServiceImpl implements ApplicationService {
 						
 			// Iterating all the running apps
 			while ((line = input.readLine()) != null) 
-			{
-    	        String[] arrRunningApp =  line.split(","); // Parsing to Array to get only the name (position 0)
+			{   String[] arrRunningApp =  line.split(","); // Parsing to Array to get only the name (position 0)
     	        String nameApp = arrRunningApp[0].replace("\"", ""); // Removing " (double quotes) from the beginning and the end of the app name
     	        if(nameApp.equals(exeAppName)) // Comparing the name of the app we are looking for
-    	        {
-    	        	validateRunningApp += 1;
+    	        {	validateRunningApp += 1;
     	        }
     	    }
 			input.close();
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
+		} catch(Exception e)
+		{	e.printStackTrace();
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("<html><font color='red'>Alerta!</font></html>");
 			popUp.lblAlertMessage.setText("<html><font color='red'>Error : al leer las aplicaciones en ejecución : method - checkAppSessions</font></html>");
 		}
-		
 		return validateRunningApp;
 	}
 
 	@Override
-	public String[] getFlgsActAppServer(FtpUpdater updater, Application objApp, IniFile objIni) {
-		FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
+	public String[] getFlgsActAppServer(FtpUpdater updater, Application objApp, IniFile objIni)
+	{	FTPClient objFtpClient 	= new FTPClient(); // => Object to connect to a FTP Server
 		Ini 	  ini 			= new Wini(); 	   // => Object to manage with a Ini File
 		//Config 	  conf 			= new Config();	   // => Configuration of a Ini File
 		String[] arrFlgsActAppServer = new String[3];
 		Section section;	// => Object to manage section of a Ini file
 		try 
-		{		
-			objFtpClient.setUseEPSVwithIPv4(true);
+		{	objFtpClient.setUseEPSVwithIPv4(true);
 			objFtpClient.connect(updater.getServerHost()); // Connecting to the FTP Server
 			boolean login = objFtpClient.login(updater.getUser(), updater.getPassword()); // Logging to the FTP 
 			objFtpClient.enterLocalPassiveMode();  
@@ -168,11 +146,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 			FTPFile[] files = objFtpClient.listFiles(); // Getting all the files inside the directory we want
 			
 			if(login) // Validating the login 
-			{
-				if(files != null && files.length >0) 
-				{
-					/// Loading the file version.ini in the path we specify
-					//String iniPath = "/"+updater.getRemoteDIR()+objIni.getRutades2exesapls()+"/"+objApp.getExeFieldNameApp()+"/version.ini";
+			{	if(files != null && files.length >0)
+				{	/// Loading the file version.ini in the path we specify
 					String pathIniApp =  "/"+updater.getRemoteDIR()+objIni.getRutades2exesapls()+"/"+objApp.getExeFieldNameApp()+"/version.ini";
 					ini.load(new InputStreamReader(objFtpClient.retrieveFileStream(pathIniApp)));
 					section = ini.get("VERSION");
@@ -181,10 +156,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 					arrFlgsActAppServer[2] = section.get("FlgActSist");
 				}
 			}
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
+		} catch(Exception e)
+		{	e.printStackTrace();
 			frmPopUp popUp = new frmPopUp();
 			popUp.setVisible(true);
 			popUp.lblAlertTitle.setText("Alerta!");
@@ -195,37 +168,34 @@ public class ApplicationServiceImpl implements ApplicationService {
 	}
 
 	@Override
-	public void openApplication(Application objApp, IniFile objIni) {
-		String dirAccPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp(); //RutaDesExesAplsUsu
+	public void openApplication(Application objApp, IniFile objIni)
+	{	String dirAccPath = objIni.getRutadesexesaplsusu()+"/"+objApp.getExeFieldNameApp(); //RutaDesExesAplsUsu
 		frmPopUp popUp = new frmPopUp();	
 		ProcessBuilder pb = null;
 		//System.out.print("Dirección de acceso directo : "+dirAccPath+"/"+objApp.getExeDesaAppDiracc());
-		if(objIni.getEnviromentDataBase().equals("desa")) {
-			pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeDesaAppDiracc());
-		}else if(objIni.getEnviromentDataBase().equals("prod")) {
-			pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeProdAppDiracc());
-		}else {			
-			
-			popUp.lblAlertTitle.setText("Alerta!");
+		if(objIni.getEnviromentDataBase().equals("desa"))
+		{	pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeDesaAppDiracc());
+		} else if(objIni.getEnviromentDataBase().equals("prod"))
+		{	pb = new ProcessBuilder("cmd", "/c", System.getProperty("user.dir")+"/"+objApp.getExeProdAppDiracc());
+		} else
+		{	popUp.lblAlertTitle.setText("Alerta!");
 			popUp.lblAlertMessage.setText("Error : El tipo de ambiente de usuario no se reconoce.");
 			popUp.setVisible(true);
 			return;
 		}		
 		Process p;
-		try {
-			p = pb.start();
+		try
+		{	p = pb.start();
 			p.waitFor();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException e)
+		{
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+		} catch (InterruptedException e)
+		{	//e.printStackTrace();
 			popUp.lblAlertTitle.setText("Alerta!");
 			popUp.lblAlertMessage.setText("Error : No se encuentra el acceso directo "+System.getProperty("user.dir")+"/"+objApp.getExeProdAppDiracc());
 			popUp.setVisible(true);
-		}		
-		
+		}
 	}
 
 }
